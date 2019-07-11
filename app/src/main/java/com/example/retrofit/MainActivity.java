@@ -16,6 +16,8 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView textViewresult;
 
+    private ReqresApi reqresApi;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,7 +28,13 @@ public class MainActivity extends AppCompatActivity {
 
         Retrofit retrofit = new Retrofit.Builder().baseUrl("https://jsonplaceholder.typicode.com/").addConverterFactory(GsonConverterFactory.create()).build();
 
-        ReqresApi reqresApi = retrofit.create(ReqresApi.class);
+        reqresApi = retrofit.create(ReqresApi.class);
+
+//        getPosts();
+        getComments();
+    }
+
+    private void getPosts(){
 
         Call<List<Post>> call = reqresApi.getPosts();
         call.enqueue(new Callback<List<Post>>() {
@@ -58,6 +66,37 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
 
+    private void getComments(){
+
+        Call<List<Comment>> call = reqresApi.getComments(1);
+
+        call.enqueue(new Callback<List<Comment>>() {
+            @Override
+            public void onResponse(Call<List<Comment>> call, Response<List<Comment>> response) {
+                if (!response.isSuccessful()){
+                    textViewresult.setText("Code: "+response.code());
+                    return;
+                }
+
+                List<Comment> comments = response.body();
+                for (Comment comment : comments){
+                    String content = "";
+                    content +="ID: " + comment.getId() + "\n";
+                    content +="Post ID: " + comment.getPostId() + "\n";
+                    content +="Name: " + comment.getName() + "\n";
+                    content +="Email: " + comment.getEmail() + "\n";
+                    content +="Text: " + comment.getText() + "\n\n";
+
+                    textViewresult.append(content);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Comment>> call, Throwable t) {
+                textViewresult.setText(t.getMessage());
+            }
+        });
     }
 }
